@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -13,31 +13,9 @@ use tui::{
     Frame, Terminal,
 };
 
-struct App<'a> {
-    pub titles: Vec<&'a str>,
-    pub index: usize,
-}
+mod app;
 
-impl<'a> App<'a> {
-    fn new() -> App<'a> {
-        App {
-            titles: vec!["Tab0", "Tab1", "Tab2", "Tab3"],
-            index: 0,
-        }
-    }
-
-    pub fn next(&mut self) {
-        self.index = (self.index + 1) % self.titles.len();
-    }
-
-    pub fn previous(&mut self) {
-        if self.index > 0 {
-            self.index -= 1;
-        } else {
-            self.index = self.titles.len() - 1;
-        }
-    }
-}
+use app::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // setup terminal
@@ -72,12 +50,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
         terminal.draw(|f| ui(f, &app))?;
 
         if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Char('q') => return Ok(()),
-                KeyCode::Right => app.next(),
-                KeyCode::Left => app.previous(),
-                _ => {}
-            }
+            app.on_key(key);
+
+            std::thread::sleep(std::time::Duration::new(0, 10));
         }
     }
 }
