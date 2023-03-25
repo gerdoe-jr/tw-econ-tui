@@ -45,11 +45,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App, tick_rate: Duration) -> io::Result<()> {
-    let mut previous_key_event = None;
-    let mut last_key_event = None;
     let mut last_tick = Instant::now();
     let mut last_pressed_tick = Instant::now();
-
 
     loop {
         terminal.draw(|f| process_app(f, &mut app))?;
@@ -58,26 +55,14 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App, tick_rate: Dura
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
 
-        if last_pressed_tick.elapsed() >= tick_rate {
-            if let Some(key) = last_key_event {
-                if let Some(pkey) = previous_key_event {
-                    if pkey != key {
-                        if app.on_key(key) {
-                            return Ok(());
-                        }
-                    }
-
-                    last_key_event = None;
-                }
-
-                previous_key_event = last_key_event;
-            }
-        }
-
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-                last_key_event = Some(key);
-                last_pressed_tick = Instant::now();
+                if last_pressed_tick.elapsed() >= tick_rate {
+                    if app.on_key(key) {
+                        return Ok(());
+                    }
+                    last_pressed_tick = Instant::now();
+                }
             }
         }
 
