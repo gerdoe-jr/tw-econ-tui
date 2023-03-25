@@ -1,5 +1,5 @@
 [package]
-name = "econ-tui"
+name = "tw-econ-tui"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 crossterm = "0.26"
 tui = "0.19"
-tw-recon = { path = "../tw-recon" }
+tw-econ = { git = "https://github.com/gerdoe-jr/tw-econ", branch = "master" }
